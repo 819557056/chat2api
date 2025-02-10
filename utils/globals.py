@@ -12,9 +12,18 @@ WSS_MAP_FILE = os.path.join(DATA_FOLDER, "wss_map.json")
 FP_FILE = os.path.join(DATA_FOLDER, "fp_map.json")
 SEED_MAP_FILE = os.path.join(DATA_FOLDER, "seed_map.json")
 CONVERSATION_MAP_FILE = os.path.join(DATA_FOLDER, "conversation_map.json")
+'''
+与token.txt每一行一一对应，存储对应token的sha1值
+'''
+TOKENS_SHA1_FILE = os.path.join(DATA_FOLDER, "token-sha1.txt")
+'''
+账户表,sqlite
+'''
+DATABASE_FILE = os.path.join(DATA_FOLDER, "accounts.db")
 
 count = 0
 token_list = []
+token_sha1_list = []
 error_token_list = []
 refresh_map = {}
 wss_map = {}
@@ -102,6 +111,13 @@ else:
     with open(ERROR_TOKENS_FILE, "w", encoding="utf-8") as f:
         pass
 
+
+def load():
+    from utils import dealAccessToken  # 延迟导入
+    dealAccessToken.generate_and_write_sha1()
+
+
 if token_list:
     logger.info(f"Token list count: {len(token_list)}, Error token list count: {len(error_token_list)}")
     logger.info("-" * 60)
+    load()
