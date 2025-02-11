@@ -1,7 +1,7 @@
 import hashlib
 import os
 import sqlite3
-from datetime import datetime
+from datetime import datetime, timedelta
 
 import utils.globals as globals
 from utils.Logger import logger
@@ -28,10 +28,14 @@ def load_tokens(filepath=globals.TOKENS_FILE):
     return globals.token_list
 
 
-def token_write_file():
+def at_write_file():
     with open(globals.TOKENS_FILE, "w", encoding="utf-8") as f:
         for token in globals.token_list:
             f.write(token + "\n")
+
+
+def token_write_file():
+    at_write_file()
 
     with open(globals.TOKENS_SHA1_FILE, "w", encoding="utf-8") as f:
         for sha1_hash in globals.token_sha1_list:
@@ -145,6 +149,7 @@ def dealAt429(at, time):
     # 修改account表的at_hash字段为SHA1哈希值对应的at_wait_time和status为1
     update_account_by_at_hash(at_hash=at_hash, at_wait_time=time, status=1)
 
+
 async def check_recovery_429():
     """
         查询 account 表，获取 at_wait_time 小于当前时间的记录，
@@ -209,5 +214,52 @@ async def check_recovery_429():
 
     logger.info("check_recovery_429 tokens refreshed.")
 
+
+def get_token_within_10_days():
+    """
+    读取 SQLite 数据库 account 表，返回 at_last_time 在当前时间 10 天之内，
+    并且 status 不等于 1 的 account 记录的 at 值。
+
+    Args:
+        db_path: SQLite 数据库文件的路径。
+
+    Returns:
+        一个列表，包含符合条件的 account 记录的 at 值。
+        如果出现错误，返回 None。
+    """
+    try:
+        conn = sqlite3.connect(globals.DATABASE_FILE)
+        cursor = conn.cursor()
+
+        ten_days_ago = datetime.now() - timedelta(days=10)
+        ten_days_ago_str = ten_days_ago.strftime("%Y%m%d%H%M%S")
+
+        # 使用 IS NULL OR
+        query = """
+                SELECT at
+                FROM account
+                WHERE at_last_time >= ? AND (status IS NULL OR status != 1);
+                """
+        cursor.execute(query, (ten_days_ago_str,))
+        rows = cursor.fetchall()
+
+        for row in rows:
+            at = row[0]
+            if at:
+                globals.token_list.append(at)
+
+        conn.close()
+        at_write_file()
+        generate_and_write_sha1()
+
+    except sqlite3.Error as e:
+        logger.error(f"SQLite 错误: {e}")
+        return None
+    except Exception as e:
+        logger.error(f"发生错误: {e}")
+        return None
+
+# if __name__ == '__main__':
+#     get_accounts_within_10_days()
 # 初始加载
 # globals.token_list = load_tokens()
