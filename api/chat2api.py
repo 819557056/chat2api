@@ -13,6 +13,7 @@ from chatgpt.ChatService import ChatService
 from chatgpt.authorization import refresh_all_tokens
 from utils.Logger import logger
 from utils.configs import api_prefix, scheduled_refresh
+from utils.dealAccessToken import check_recovery_429
 from utils.retry import async_retry
 
 scheduler = AsyncIOScheduler()
@@ -23,6 +24,8 @@ async def app_start():
     if scheduled_refresh:
         scheduler.add_job(id='refresh', func=refresh_all_tokens, trigger='cron', hour=3, minute=0, day='*/2',
                           kwargs={'force_refresh': True})
+
+        scheduler.add_job(id='check_recovery_429', func=check_recovery_429, trigger='interval', minute=30)
         scheduler.start()
         asyncio.get_event_loop().call_later(0, lambda: asyncio.create_task(refresh_all_tokens(force_refresh=False)))
 
