@@ -27,6 +27,8 @@ async def app_start():
                           kwargs={'force_refresh': True})
 
         scheduler.add_job(id='check_recovery_429', func=check_recovery_429, trigger='interval', minute=30)
+        scheduler.add_job(id='get_token_within_10_days', func=get_token_within_10_days, trigger='cron', hour=4, minute=0
+                          , day='*/2')
         scheduler.start()
         asyncio.get_event_loop().call_later(0, lambda: asyncio.create_task(refresh_all_tokens(force_refresh=False)))
 
