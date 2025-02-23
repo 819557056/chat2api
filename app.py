@@ -53,5 +53,5 @@ else:
 
 
 if __name__ == "__main__":
-    uvicorn.run("app:app", host="0.0.0.0", port=15421)
+    uvicorn.run("app:app", host="0.0.0.0", port=5005)
     # uvicorn.run("app:app", host="0.0.0.0", port=5005, ssl_keyfile="key.pem", ssl_certfile="cert.pem")
