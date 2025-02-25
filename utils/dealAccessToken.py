@@ -27,6 +27,11 @@ def load_tokens(filepath=globals.TOKENS_FILE):
             pass
     return globals.token_list
 
+def clear_file_at_and_hash():
+    with open(globals.TOKENS_FILE, "w", encoding="utf-8"):
+        pass  # 只打开文件并清空它，什么也不做
+    with open(globals.TOKENS_SHA1_FILE, "w", encoding="utf-8") as f:
+        pass  # 只打开文件并清空它，什么也不做
 
 def at_write_file():
     with open(globals.TOKENS_FILE, "w", encoding="utf-8") as f:
@@ -242,6 +247,12 @@ def get_token_within_10_days():
                 """
         cursor.execute(query, (ten_days_ago_str,))
         rows = cursor.fetchall()
+
+        # 清空全局列表,再添加
+        globals.token_list.clear()
+
+        # 清空token.txt和token_sha1.txt文件
+        clear_file_at_and_hash()
 
         for row in rows:
             at = row[0]
