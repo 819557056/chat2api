@@ -252,6 +252,8 @@ def get_token_within_10_days():
         at_write_file()
         generate_and_write_sha1()
 
+        logger.info(f"availabled Token list count: {len(globals.token_list)}")
+
     except sqlite3.Error as e:
         logger.error(f"SQLite 错误: {e}")
         return None
